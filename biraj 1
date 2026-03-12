@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprite Customizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #001a08;
+    --panel: #051f0d;
+    --border: rgba(0,200,60,0.15);
+    --lime: #AAFF00;
+    --green: #00C03A;
+    --white: #F5F5F0;
+    --muted: rgba(255,255,255,0.35);
+    --accent: #FFF000;
+
+    /* Dynamic (changed by JS) */
+    --drink-color: #00e84a;
+    --drink-dark:  #00a030;
+    --drink-light: #aaffcc;
+    --label-bg:    #ffffff;
+    --label-text:  #001a08;
+  }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 60px;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    color: var(--lime);
+    letter-spacing: 0.06em;
+    text-shadow: 0 0 24px rgba(170,255,0,0.4);
+  }
+
+  .brand span {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--muted);
+    letter-spacing: 0.3em;
+    display: block;
+    margin-top: -8px;
+    text-transform: uppercase;
+  }
+
+  .hdr-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-align: right;
+    line-height: 1.8;
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    width: 100%;
+    max-width: 1100px;
+    display: grid;
+    grid-template-columns: 1fr 440px;
+    gap: 0;
+    padding: 0 40px;
+    margin-top: 32px;
+  }
+
+  /* ── LEFT: BOTTLE PREVIEW ── */
+  .preview-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 20px;
+    position: relative;
+  }
+
+  .preview-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  /* SVG bottle container */
+  #bottle-svg-wrap {
+    filter: drop-shadow(0 0 40px rgba(0,200,60,0.25)) drop-shadow(0 30px 60px rgba(0,0,0,0.6));
+    animation: bottleFloat 4s ease-in-out infinite;
+    transition: filter 0.4s;
+  }
+
+  @keyframes bottleFloat {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-14px); }
+  }
+
+  /* Glow halo under bottle */
+  .bottle-glow {
+    width: 160px;
+    height: 24px;
+    background: radial-gradient(ellipse, var(--drink-color) 0%, transparent 70%);
+    opacity: 0.35;
+    margin-top: -10px;
+    transition: background 0.5s;
+    animation: glowPulse 4s ease-in-out infinite;
+  }
+
+  @keyframes glowPulse {
+    0%,100% { opacity: 0.35; }
+    50%      { opacity: 0.6; }
+  }
+
+  /* Floating bubbles in preview */
+  .bubbles-wrap {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 500px;
+    pointer-events: none;
+  }
+
+  .bbl {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.55), transparent);
+    border: 1px solid rgba(255,255,255,0.2);
+    animation: bblRise linear infinite;
+  }
+
+  @keyframes bblRise {
+    0%   { opacity:0; transform:translateY(0) translateX(0); }
+    10%  { opacity:1; }
+    90%  { opacity:1; }
+    100% { opacity:0; transform:translateY(-200px) translateX(12px); }
+  }
+
+  .bbl:nth-child(1){ width:8px;  height:8px;  left:45%; bottom:60px; animation-duration:3s;   animation-delay:0s; }
+  .bbl:nth-child(2){ width:5px;  height:5px;  left:55%; bottom:40px; animation-duration:4s;   animation-delay:0.8s; }
+  .bbl:nth-child(3){ width:9px;  height:9px;  left:38%; bottom:70px; animation-duration:3.5s; animation-delay:1.6s; }
+  .bbl:nth-child(4){ width:6px;  height:6px;  left:60%; bottom:55px; animation-duration:2.8s; animation-delay:2.2s; }
+  .bbl:nth-child(5){ width:4px;  height:4px;  left:50%; bottom:45px; animation-duration:4.2s; animation-delay:0.4s; }
+
+  /* Your choice badge */
+  .choice-badge {
+    margin-top: 32px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 32px;
+    text-align: center;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .choice-badge .cb-label {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .choice-badge .cb-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 0.05em;
+    color: var(--lime);
+    transition: color 0.4s;
+  }
+
+  .choice-badge .cb-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  /* ── RIGHT: CONTROLS ── */
+  .controls {
+    padding: 0 0 0 40px;
+    border-left: 1px solid var(--border);
+  }
+
+  .section {
+    margin-bottom: 36px;
+  }
+
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Flavor cards */
+  .flavor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .flavor-card {
+    background: rgba(255,255,255,0.03);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .flavor-card:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.06);
+    transform: translateY(-2px);
+  }
+
+  .flavor-card.active {
+    border-color: var(--lime);
+    background: rgba(170,255,0,0.07);
+  }
+
+  .flavor-icon {
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .flavor-info .f-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--white);
+  }
+
+  .flavor-info .f-desc {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  /* Color swatches */
+  .color-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .color-swatch {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .color-swatch:hover { transform: scale(1.1); }
+
+  .color-swatch.active {
+    border-color: white;
+    transform: scale(1.15);
+  }
+
+  .color-swatch.active::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: white;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  /* Bottle type */
+  .bottle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+
+  .bottle-btn {
+    background: rgba(255,255,255,0.03);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    color: var(--white);
+  }
+
+  .bottle-btn:hover {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.06);
+    transform: translateY(-2px);
+  }
+
+  .bottle-btn.active {
+    border-color: var(--lime);
+    background: rgba(170,255,0,0.07);
+  }
+
+  .bottle-btn .bb-icon { font-size: 28px; margin-bottom: 6px; }
+  .bottle-btn .bb-name { font-size: 12px; font-weight: 600; }
+  .bottle-btn .bb-size { font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 300; }
+
+  /* Size toggle */
+  .size-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .size-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    text-align: center;
+    color: var(--white);
+    transition: all 0.2s;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+  }
+
+  .size-btn:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); }
+  .size-btn.active { border-color: var(--lime); background: rgba(170,255,0,0.07); color: var(--lime); }
+
+  /* Ice toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+  }
+
+  .toggle-label { font-size: 13px; font-weight: 500; }
+  .toggle-sub   { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  .toggle-switch {
+    width: 52px;
+    height: 28px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 14px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch.on { background: var(--lime); }
+
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px;
+    width: 20px; height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  .toggle-switch.on::after { transform: translateX(24px); }
+
+  /* CTA */
+  .cta-btn {
+    width: 100%;
+    background: var(--lime);
+    color: #001a08;
+    border: none;
+    border-radius: 14px;
+    padding: 20px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .cta-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    transform: skewX(-20deg);
+    transition: left 0.4s;
+  }
+
+  .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(170,255,0,0.3); }
+  .cta-btn:hover::before { left: 150%; }
+  .cta-btn:active { transform: translateY(0); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--lime);
+    color: #001a08;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 16px 32px;
+    border-radius: 50px;
+    letter-spacing: 0.1em;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 999;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Responsive */
+  @media (max-width: 800px) {
+    .main { grid-template-columns: 1fr; padding: 0 20px; }
+    .controls { padding: 32px 0 0 0; border-left: none; border-top: 1px solid var(--border); }
+    header { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    Sprite
+    <span>Custom Drink Builder</span>
+  </div>
+  <div class="hdr-tag">
+    Design Your<br>Perfect Drink ✦
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- LEFT: PREVIEW -->
+  <div class="preview-zone">
+    <div class="preview-title">✦ Your Custom Sprite ✦</div>
+    <div class="bubbles-wrap">
+      <div class="bbl"></div><div class="bbl"></div><div class="bbl"></div>
+      <div class="bbl"></div><div class="bbl"></div>
+    </div>
+
+    <div id="bottle-svg-wrap">
+      <!-- SVG rendered by JS -->
+    </div>
+    <div class="bottle-glow" id="bottle-glow"></div>
+
+    <div class="choice-badge">
+      <div class="cb-label">Your Selection</div>
+      <div class="cb-name" id="choice-name">Lemon Lime</div>
+      <div class="cb-sub" id="choice-sub">Classic Bottle · 350ml · With Ice</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: CONTROLS -->
+  <div class="controls">
+
+    <!-- FLAVOR -->
+    <div class="section">
+      <div class="section-title">01 — Flavor</div>
+      <div class="flavor-grid" id="flavor-grid">
+        <div class="flavor-card active" data-flavor="lemon-lime" onclick="setFlavor(this)">
+          <div class="flavor-icon">🍋</div>
+          <div class="flavor-info">
+            <div class="f-name">Lemon Lime</div>
+            <div class="f-desc">The Original Classic</div>
+          </div>
+        </div>
+        <div class="flavor-card" data-flavor="watermelon" onclick="setFlavor(this)">
+          <div class="flavor-icon">🍉</div>
+          <div class="flavor-info">
+            <div class="f-name">Watermelon</div>
+            <div class="f-desc">Sweet Summer Vibes</div>
+          </div>
+        </div>
+        <div class="flavor-card" data-flavor="strawberry" onclick="setFlavor(this)">
+          <div class="flavor-icon">🍓</div>
+          <div class="flavor-info">
+            <div class="f-name">Strawberry</div>
+            <div class="f-desc">Berry Fresh Twist</div>
+          </div>
+        </div>
+        <div class="flavor-card" data-flavor="mango" onclick="setFlavor(this)">
+          <div class="flavor-icon">🥭</div>
+          <div class="flavor-info">
+            <div class="f-name">Mango</div>
+            <div class="f-desc">Tropical Explosion</div>
+          </div>
+        </div>
+        <div class="flavor-card" data-flavor="grape" onclick="setFlavor(this)">
+          <div class="flavor-icon">🍇</div>
+          <div class="flavor-info">
+            <div class="f-name">Grape</div>
+            <div class="f-desc">Deep & Fruity</div>
+          </div>
+        </div>
+        <div class="flavor-card" data-flavor="peach" onclick="setFlavor(this)">
+          <div class="flavor-icon">🍑</div>
+          <div class="flavor-info">
+            <div class="f-name">Peach</div>
+            <div class="f-desc">Soft & Dreamy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLOR -->
+    <div class="section">
+      <div class="section-title">02 — Drink Color</div>
+      <div class="color-row" id="color-row">
+        <div class="color-swatch active" data-color="lime" style="background:linear-gradient(135deg,#00e84a,#aaff00)" onclick="setColor(this)" title="Lime Green"></div>
+        <div class="color-swatch" data-color="cyan" style="background:linear-gradient(135deg,#00c8e8,#00ffee)" onclick="setColor(this)" title="Aqua Blue"></div>
+        <div class="color-swatch" data-color="red" style="background:linear-gradient(135deg,#ff2d2d,#ff8800)" onclick="setColor(this)" title="Strawberry Red"></div>
+        <div class="color-swatch" data-color="pink" style="background:linear-gradient(135deg,#ff4da6,#ff99cc)" onclick="setColor(this)" title="Pink Berry"></div>
+        <div class="color-swatch" data-color="purple" style="background:linear-gradient(135deg,#8b00ff,#cc44ff)" onclick="setColor(this)" title="Grape Purple"></div>
+        <div class="color-swatch" data-color="orange" style="background:linear-gradient(135deg,#ff7700,#ffcc00)" onclick="setColor(this)" title="Mango Orange"></div>
+        <div class="color-swatch" data-color="yellow" style="background:linear-gradient(135deg,#ffe000,#fff176)" onclick="setColor(this)" title="Lemon Yellow"></div>
+        <div class="color-swatch" data-color="white" style="background:linear-gradient(135deg,#e8f5ff,#ffffff);border:1.5px solid rgba(255,255,255,0.3)" onclick="setColor(this)" title="Crystal Clear"></div>
+      </div>
+    </div>
+
+    <!-- BOTTLE TYPE -->
+    <div class="section">
+      <div class="section-title">03 — Bottle Type</div>
+      <div class="bottle-grid" id="bottle-grid">
+        <div class="bottle-btn active" data-bottle="classic" onclick="setBottle(this)">
+          <div class="bb-icon">🧴</div>
+          <div class="bb-name">Classic</div>
+          <div class="bb-size">Plastic Bottle</div>
+        </div>
+        <div class="bottle-btn" data-bottle="can" onclick="setBottle(this)">
+          <div class="bb-icon">🥤</div>
+          <div class="bb-name">Can</div>
+          <div class="bb-size">Aluminium</div>
+        </div>
+        <div class="bottle-btn" data-bottle="glass" onclick="setBottle(this)">
+          <div class="bb-icon">🫙</div>
+          <div class="bb-name">Glass</div>
+          <div class="bb-size">Premium</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIZE -->
+    <div class="section">
+      <div class="section-title">04 — Size</div>
+      <div class="size-row" id="size-row">
+        <div class="size-btn active" data-size="350ml" onclick="setSize(this)">350ml</div>
+        <div class="size-btn" data-size="500ml" onclick="setSize(this)">500ml</div>
+        <div class="size-btn" data-size="1L" onclick="setSize(this)">1 Litre</div>
+        <div class="size-btn" data-size="1.5L" onclick="setSize(this)">1.5L</div>
+      </div>
+    </div>
+
+    <!-- ICE -->
+    <div class="section">
+      <div class="section-title">05 — Extras</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">🧊 With Ice</div>
+            <div class="toggle-sub">Extra cold & refreshing</div>
+          </div>
+          <div class="toggle-switch on" id="ice-toggle" onclick="toggleIce()"></div>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">🍋 Lemon Slice</div>
+            <div class="toggle-sub">Fresh citrus garnish</div>
+          </div>
+          <div class="toggle-switch" id="lemon-toggle" onclick="toggleLemon()"></div>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">🫧 Extra Fizzy</div>
+            <div class="toggle-sub">Maximum carbonation</div>
+          </div>
+          <div class="toggle-switch" id="fizz-toggle" onclick="toggleFizz()"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <button class="cta-btn" onclick="orderNow()">✦ Order My Sprite ✦</button>
+
+  </div>
+</div>
+
+<div class="toast" id="toast">🎉 Your Custom Sprite is on its way!</div>
+
+<script>
+  // STATE
+  const state = {
+    flavor: 'lemon-lime',
+    color: 'lime',
+    bottle: 'classic',
+    size: '350ml',
+    ice: true,
+    lemon: false,
+    fizz: false
+  };
+
+  const flavorNames = {
+    'lemon-lime': 'Lemon Lime',
+    'watermelon': 'Watermelon',
+    'strawberry': 'Strawberry',
+    'mango': 'Mango',
+    'grape': 'Grape',
+    'peach': 'Peach'
+  };
+
+  const bottleNames = {
+    'classic': 'Classic Bottle',
+    'can': 'Aluminium Can',
+    'glass': 'Glass Bottle'
+  };
+
+  const colorMap = {
+    lime:   { main:'#00e84a', dark:'#00a030', light:'#aaffcc', label:'#fff', labelBg:'#006622', name:'Lime Green' },
+    cyan:   { main:'#00c8e8', dark:'#0090b0', light:'#aaeeff', label:'#fff', labelBg:'#005566', name:'Aqua Blue' },
+    red:    { main:'#ff4444', dark:'#cc1100', light:'#ffaaaa', label:'#fff', labelBg:'#881100', name:'Strawberry Red' },
+    pink:   { main:'#ff4da6', dark:'#cc0066', light:'#ffccee', label:'#fff', labelBg:'#880044', name:'Pink Berry' },
+    purple: { main:'#9933ff', dark:'#5500bb', light:'#ddaaff', label:'#fff', labelBg:'#330088', name:'Grape Purple' },
+    orange: { main:'#ff8800', dark:'#cc5500', light:'#ffddaa', label:'#fff', labelBg:'#884400', name:'Mango Orange' },
+    yellow: { main:'#ffe000', dark:'#ccaa00', light:'#fffaaa', label:'#001a08', labelBg:'#996600', name:'Lemon Yellow' },
+    white:  { main:'#d0eeff', dark:'#8fb8d0', light:'#ffffff', label:'#001a08', labelBg:'#336688', name:'Crystal Clear' },
+  };
+
+  function setFlavor(el) {
+    document.querySelectorAll('.flavor-card').forEach(e => e.classList.remove('active'));
+    el.classList.add('active');
+    state.flavor = el.dataset.flavor;
+    updateBadge(); renderBottle();
+  }
+
+  function setColor(el) {
+    document.querySelectorAll('.color-swatch').f
